@@ -20,7 +20,7 @@ jwt:
 #  realm: spring-boot-code
 #  domain: localhost:9081
 #  adminClientId: admin-cli
-#  adminClientSecret: Sr6CXPYmJ9rSdiGAJftPcey2ad85RjI7
+#  adminClientSecret: 
 #  client: authenticationClientId
 #  urls:
 #    auth: http://${keycloak.domain}
@@ -29,11 +29,11 @@ keycloak:
   realm: Stronglover
   domain: localhost:8080
   admin-client-id: admin-cli
-  #admin-client-secret: LevrRJkgUr1o5IFE5Tg1iWnouM7Mmy0A
+  #admin-client-secret: 
   admin-client-secret: use_Your_SecretClient
   client: Stronglover-rest-api
 #  credentials:
-#    secret: dqBscOMwO9k63Ud7mTPrATFsRDpQhDFm
+#    secret: 
 #  grant-type: client_credentials  # corrected from client-credentials to client_credentials
   auth-server-url: http://${keycloak.domain}  # Added this important property
   urls:

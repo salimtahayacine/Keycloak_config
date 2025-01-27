@@ -30,7 +30,7 @@ keycloak:
   domain: localhost:8080
   admin-client-id: admin-cli
   #admin-client-secret: LevrRJkgUr1o5IFE5Tg1iWnouM7Mmy0A
-  admin-client-secret: LevrRJkgUr1o5IFE5Tg1iWnouM7Mmy0A
+  admin-client-secret: use_Your_SecretClient
   client: Stronglover-rest-api
 #  credentials:
 #    secret: dqBscOMwO9k63Ud7mTPrATFsRDpQhDFm

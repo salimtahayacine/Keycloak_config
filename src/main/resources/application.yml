@@ -1,0 +1,48 @@
+spring:
+  main:
+    allow-circular-references: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Stronglover
+          jwk-set-uri: ${keycloak.urls.auth}/realms/${keycloak.realm}/protocol/openid-connect/certs
+
+server:
+  port: 8085
+jwt:
+  auth:
+    converter:
+      resource-id: Stronglover-rest-api
+      principle-attribute: preferred_username
+
+#keycloak:
+#  realm: spring-boot-code
+#  domain: localhost:9081
+#  adminClientId: admin-cli
+#  adminClientSecret: Sr6CXPYmJ9rSdiGAJftPcey2ad85RjI7
+#  client: authenticationClientId
+#  urls:
+#    auth: http://${keycloak.domain}
+
+keycloak:
+  realm: Stronglover
+  domain: localhost:8080
+  admin-client-id: admin-cli
+  #admin-client-secret: LevrRJkgUr1o5IFE5Tg1iWnouM7Mmy0A
+  admin-client-secret: LevrRJkgUr1o5IFE5Tg1iWnouM7Mmy0A
+  client: Stronglover-rest-api
+#  credentials:
+#    secret: dqBscOMwO9k63Ud7mTPrATFsRDpQhDFm
+#  grant-type: client_credentials  # corrected from client-credentials to client_credentials
+  auth-server-url: http://${keycloak.domain}  # Added this important property
+  urls:
+    auth: http://${keycloak.domain}
+
+# Logging configuration (optional but recommended)
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.keycloak: DEBUG
+    your.package.name: DEBUG

@@ -6,10 +6,10 @@ import com.stronglover.demo.test.keycloak.UserRegistrationRecord;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.admin.client.resource.*;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +19,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -38,7 +39,6 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     public UserRegistrationRecord createUser(UserRegistrationRecord userRegistrationRecord) {
 
         try{
-
 
         UserRepresentation user=new UserRepresentation();
         user.setEnabled(true);
@@ -68,10 +68,19 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
 
         if(Objects.equals(201,response.getStatus())){
 
-            List<UserRepresentation> representationList = usersResource.searchByUsername(userRegistrationRecord.username(), true);
+            List<UserRepresentation> representationList = usersResource
+                    .searchByUsername(userRegistrationRecord.username(), true);
             if(!CollectionUtils.isEmpty(representationList)){
-                UserRepresentation userRepresentation1 = representationList.stream().filter(userRepresentation -> Objects.equals(false, userRepresentation.isEmailVerified())).findFirst().orElse(null);
+                UserRepresentation userRepresentation1 = representationList
+                        .stream().filter(userRepresentation -> Objects
+                                .equals(false, userRepresentation.isEmailVerified()))
+                        .findFirst().orElse(null);
                 assert userRepresentation1 != null;
+
+                // Assign roles to the user
+                if (userRegistrationRecord.roles() != null && !userRegistrationRecord.roles().isEmpty()) {
+                    assignRoles(userRepresentation1.getId(), userRegistrationRecord.roles());
+                }
                // emailVerification(userRepresentation1.getId());
             }
             return  userRegistrationRecord;
@@ -97,6 +106,42 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     private UsersResource getUsersResource() {
         RealmResource realm1 = keycloak.realm(realm);
         return realm1.users();
+    }
+
+    @Override
+    public void assignRoles(String userId, List<String> roles) {
+        UserResource userResource = getUserResource(userId);
+        RealmResource realmResource = keycloak.realm(realm);
+
+        // Get the realm roles
+        RoleScopeResource roleScopeResource = userResource.roles().realmLevel();
+        List<RoleRepresentation> roleRepresentations = realmResource.roles().list().stream()
+                .filter(role -> roles.contains(role.getName()))
+                .collect(Collectors.toList());
+
+        // Assign the roles to the user
+        roleScopeResource.add(roleRepresentations);
+    }
+    @Override
+    public void assignClientRoles(String userId, String clientId, List<String> roles) {
+        UserResource userResource = getUserResource(userId);
+        RealmResource realmResource = keycloak.realm(realm);
+
+        // Get the client representation
+        ClientsResource clientsResource = realmResource.clients();
+        ClientRepresentation clientRepresentation = clientsResource.findByClientId(clientId).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        // Get the client roles
+        RoleScopeResource roleScopeResource = userResource.roles().clientLevel(clientRepresentation.getId());
+        List<RoleRepresentation> roleRepresentations = realmResource
+                .clients().get(clientRepresentation.getId()).roles().list().stream()
+                .filter(role -> roles.contains(role.getName()))
+                .collect(Collectors.toList());
+
+        // Assign the roles to the user
+        roleScopeResource.add(roleRepresentations);
     }
 
 
